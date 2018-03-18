@@ -43,3 +43,7 @@ helm install --namespace kube-system --set dashboard.enabled=true,dashboard.doma
 
     az aks get-credentials --name=aks-cluster-v2 --resource-group=team12-aks-v2
     az aks browse --name=aks-cluster-v2 --resource-group=team12-aks-v2
+
+
+    export POD_NAME=$(kubectl get pods --namespace loadtest -l "app=jmeter-grafana" -o jsonpath="{.items[0].metadata.name}")
+    kubectl port-forward $POD_NAME 3000:3000 --namespace loadtest 
