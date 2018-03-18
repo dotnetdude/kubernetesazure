@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azurefile
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: azurefile
+  resources:
+    requests:
+      storage: 5Gi
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: azurefile
+provisioner: kubernetes.io/azure-file
+parameters:
+  storageAccount: team12azurefile
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: fulfillorderack-deployment
+  labels:
+    app: fulfillorderack
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fulfillorderack
+  template:
+    metadata:
+      labels:
+        app: fulfillorderack
+    spec:
+      containers:
+        - image: shanepeckham/fulfillorderack:v6
+          volumeMounts:
+          - mountPath: "/orders"
+            name: volume
+          name: fulfillorderack
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+           - name: TEAMNAME
+             value: Team_12
+           - name: MONGOHOST
+             value: mongodb://team-12:Password123@my-mongo-mongodb:27017/aks-db
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: azurefile
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fulfillorderack-service
+spec:
+  selector:
+    app: fulfillorderack
+  ports:
+  - port: 8080
+    targetPort: 8080

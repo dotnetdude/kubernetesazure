@@ -1,0 +1,42 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: rabbitmqlistenerack-deployment
+  labels:
+    app: rabbitmqlistenerack
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: rabbitmqlistenerack
+  template:
+    metadata:
+      labels:
+        app: rabbitmqlistenerack
+    spec:
+      containers:
+        - image: shanepeckham/rabbitmqlistenerack:v6
+          name: rabbitmqlistenerack
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+           - name: TEAMNAME
+             value: Team_12
+           - name: PROCESSENDPOINT
+             value: http://fulfillorderack-service.kube-system:8080/v1/order/
+           - name: RABBITMQHOST
+             value: amqp://admin:password@my-rabbit-rabbitmq:5672
+           - name: PARTITIONKEY
+             value: 0,1,2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmqlistenerack-service
+spec:
+  selector:
+    app: rabbitmqlistenerack
+  ports:
+  - port: 80
+    targetPort: 8080

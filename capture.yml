@@ -1,0 +1,56 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: captureorderack-deployment
+  labels:
+    app: captureorderack
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: captureorderack
+  template:
+    metadata:
+      labels:
+        app: captureorderack
+    spec:
+      containers:
+        - image: shanepeckham/captureorderack:v6
+          name: captureorderack
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+           - name: TEAMNAME
+             value: Team_12
+           - name: MONGOHOST
+             value: mongodb://team-12-cosmos:oX5PcE1R9diBgmf81khW9kv3R9d7sb6RbAh8m82KBLLJ4VeVGOg4zexzzHLnVffCpnWQDqf2KiSLTNxbIZjinw==@team-12-cosmos.documents.azure.com:10255/?ssl=true&replicaSet=globaldb
+           - name: RABBITMQHOST
+             value: amqp://admin:password@my-rabbit-rabbitmq:5672
+           - name: PARTITIONKEY
+             value: 0,1,2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: captureorderack-service
+spec:
+  selector:
+    app: captureorderack
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: captureorderack-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: captureorderack-service
+          servicePort: 80

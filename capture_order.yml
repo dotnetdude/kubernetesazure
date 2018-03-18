@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: captureorderack-deployment
+  labels:
+    app: captureorderack
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: captureorderack
+  template:
+    metadata:
+      labels:
+        app: captureorderack
+    spec:
+      containers:
+      - name: captureorderack
+        image: shanepeckham/captureorderack:v6
+        ports:
+        - containerPort: 8080
+        env:
+         - name: TEAMNAME
+           value: Team_12
+         - name: MONGOHOST
+           value: mongodb://team-12:Password123@brawny-sasquatch-mongodb:27017/aks-db
